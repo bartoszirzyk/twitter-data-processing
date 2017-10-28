@@ -1,26 +1,19 @@
 
-# encoding=utf8  
+# encoding=utf8
 import re
-import urllib.request
-import asyncio
 import csv
+import json
 
 
-def findRedirection(url):
-  req = urllib.request.Request(url=url)
-  resp = urllib.request.urlopen(req, timeout=10)
-  return resp.geturl()
+def transformURL(url):
+  if any(url):
+    return re.match('https?://[^\s\?\#]+', url['expanded_url']).group(0)
 
-
-def filterURLs(tweet):
-  return [findRedirection(x) for x in re.findall(r'(https?://[^\s]+)', tweet)]
-
-
-with open('InputData/tweets.csv', 'r',encoding="utf-8") as inputfile:
+with open('InputData/tweets2.csv', 'r', encoding="utf-8") as inputfile:
   reader = csv.DictReader(inputfile)
-  with open('OutputData/out.csv','w') as outputfile:
+  with open('OutputData/out.csv', 'w') as outputfile:
     fieldnames = ['twid', 'urls']
     writer = csv.DictWriter(outputfile, fieldnames=fieldnames)
     writer.writeheader()
     for row in reader:
-      writer.writerow({'twid': row['twid'], 'urls': filterURLs(row['tweet'])})
+      writer.writerow({'twid': row['twid'], 'urls': [transformURL(x) for x in json.loads(row['urls'])]})
